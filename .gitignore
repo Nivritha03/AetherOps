@@ -1,0 +1,26 @@
+# GPU Cost Optimizer Project .gitignore
+
+# Backend (Go)
+gpu-cost-optimizer/backend/*.exe
+gpu-cost-optimizer/backend/gpu-cost-optimizer-api
+gpu-cost-optimizer/backend/.env
+
+# Frontend (Next.js)
+gpu-cost-optimizer/frontend/.next/
+gpu-cost-optimizer/frontend/node_modules/
+gpu-cost-optimizer/frontend/.env.local
+gpu-cost-optimizer/frontend/.env.production
+
+# Kubernetes / Helm
+*.kubeconfig
+infra/secrets/
+
+# IDE files
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
