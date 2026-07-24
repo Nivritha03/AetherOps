@@ -1,0 +1,17 @@
+provider:
+  type: prometheus
+
+prometheus:
+  url: "http://localhost:9090"
+  cacheTTL: "30s"
+
+pricing:
+  cpuPerHour: 0.03
+  memoryPerGBHour: 0.005
+  gpuPerHour: 3.50
+
+rules:
+  idleCPU:
+    observationWindow: "24h"
+  nodeConsolidation:
+    observationWindow: "24h"

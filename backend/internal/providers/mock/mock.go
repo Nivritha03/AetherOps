@@ -15,6 +15,13 @@ func (p *MockProvider) GetDashboardData() (models.DashboardData, error) {
 		MonthlyCost:       124500,
 		PotentialSavings:  30200,
 		OptimizationScore: 78,
+		ScoreBreakdown: models.OptimizationScoreBreakdown{
+			IdleResources:  65,
+			Rightsizing:    72,
+			CostEfficiency: 81,
+			Reliability:    94,
+			Scheduling:     80,
+		},
 		IdleGPUs:          14,
 		ActiveWorkloads:   8,
 	}, nil
@@ -134,5 +141,13 @@ func (p *MockProvider) GetClusters() ([]models.ClusterHealth, error) {
 			NetworkInGbps: 4.2, NetworkOutGbps: 1.8,
 			Warnings: 3, Errors: 0, HealthScore: 94,
 		},
+	}, nil
+}
+
+func (p *MockProvider) GetCostTimeline() (interface{}, error) {
+	return []map[string]interface{}{
+		{"day": "Monday", "cost": 121, "reason": "Stable workloads"},
+		{"day": "Tuesday", "cost": 156, "reason": "Training workload started"},
+		{"day": "Wednesday", "cost": 118, "reason": "Node removed"},
 	}, nil
 }

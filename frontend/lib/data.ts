@@ -29,6 +29,43 @@ export interface GpuNode {
   namespace: string;
 }
 
+export interface Cost {
+  value: number;
+  confidence: string;
+  source: string;
+}
+
+export interface ReasonDetails {
+  averageCpu: number;
+  averageMemory: number;
+}
+
+export interface Recommendation {
+  id: string;
+  title: string;
+  explanation: string;
+  severity: "critical" | "high" | "medium" | "low";
+  confidence: number;
+  estimatedSavings: Cost | number; // Fallback for backwards compatibility if needed
+  estimatedImpact: string;
+  category: string;
+  recommendedAction: string;
+  affectedNodes?: string[];
+  
+  // Explainability
+  risk?: string;
+  observedFor?: string;
+  reasonDetails?: ReasonDetails;
+  why?: string;
+  
+  // Lifecycle
+  created?: string;
+  lastEvaluated?: string;
+  status?: string;
+  resolved?: string;
+  savings?: Cost;
+}
+
 export interface Optimization {
   id: string;
   title: string;
@@ -47,6 +84,17 @@ export interface Optimization {
   status: OptStatus;
   affectedNodes: string[];
   scheduledFor?: string;
+
+  // Explainability
+  risk?: string;
+  observedFor?: string;
+  why?: string;
+  reasonDetails?: ReasonDetails;
+
+  // Lifecycle
+  created?: string;
+  lastEvaluated?: string;
+  resolved?: string;
 }
 
 export interface Workload {
@@ -116,6 +164,13 @@ export interface DashboardData {
   monthlyCost: number;
   potentialSavings: number;
   optimizationScore: number;
+  scoreBreakdown: {
+    idleResources: number;
+    rightsizing: number;
+    costEfficiency: number;
+    reliability: number;
+    scheduling: number;
+  };
   idleGPUs: number;
   activeWorkloads: number;
 }

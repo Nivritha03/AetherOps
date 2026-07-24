@@ -8,7 +8,7 @@ import {
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import { Optimization, OptStatus } from "@/lib/data";
-import { useRecommendations } from "@/lib/api";
+import { useRecommendations, runSimulation, applyAction, resolveRecommendation, useResolvedRecommendations } from "@/lib/api";
 
 const FILTERS = ["All", "Critical", "High", "Medium", "Easy Wins", "Applied", "Scheduled"];
 
@@ -39,6 +39,23 @@ function ConfidenceBar({ value }: { value: number }) {
 function OptCard({ opt, onAction }: { opt: Optimization; onAction: (id: string, action: OptStatus) => void }) {
 
   const [expanded, setExpanded] = useState(false);
+  const [simulation, setSimulation] = useState<any>(null);
+  const [simLoading, setSimLoading] = useState(false);
+  const [diffView, setDiffView] = useState<any>(null);
+  const [isApplying, setIsApplying] = useState(false);
+  
+  const handlePreview = async () => {
+    setSimLoading(true);
+    try {
+      const res = await runSimulation(opt.id);
+      setSimulation(res);
+    } catch(e) {
+      console.error(e);
+    } finally {
+      setSimLoading(false);
+    }
+  };
+
   const d = difficultyConfig[opt.difficulty];
   const isNegSavings = opt.monthlySavings < 0;
 
@@ -105,17 +122,41 @@ function OptCard({ opt, onAction }: { opt: Optimization; onAction: (id: string, 
           {/* Expandable: AI reasoning + action */}
           {expanded && (
             <div style={{ marginTop: 12, padding: "14px 16px", background: "var(--surface-1)", border: "1px solid var(--border)", borderRadius: 8 }}>
+              
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
+                <div>
+                  <p style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Risk</p>
+                  <p style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 500 }}>{opt.risk || "Low"}</p>
+                </div>
+                <div>
+                  <p style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Observed For</p>
+                  <p style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 500 }}>{opt.observedFor || "7 days"}</p>
+                </div>
+                <div>
+                  <p style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Created</p>
+                  <p style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 500 }}>{opt.created ? new Date(opt.created).toLocaleDateString() : "Just now"}</p>
+                </div>
+              </div>
+
               <p style={{ fontSize: 11, color: "var(--blue-bright)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
-                AI Analysis
+                Why
               </p>
               <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.65, marginBottom: 10 }}>
-                {opt.aiReasoning}
+                {opt.why || opt.aiReasoning}
               </p>
+              
+              {opt.reasonDetails && (
+                <div style={{ marginBottom: 12, padding: "8px 12px", background: "var(--surface-hover)", borderRadius: 6 }}>
+                   <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>• Average CPU: {opt.reasonDetails.averageCpu.toFixed(1)}%</p>
+                   <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>• Average Memory: {opt.reasonDetails.averageMemory.toFixed(1)}%</p>
+                </div>
+              )}
+
               <p style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
                 Recommended Action
               </p>
               <p style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6 }}>
-                {opt.action}
+                {opt.action || opt.problem}
               </p>
             </div>
           )}
@@ -145,10 +186,10 @@ function OptCard({ opt, onAction }: { opt: Optimization; onAction: (id: string, 
             </p>
           )}
 
-          {opt.status === "pending" && (
+          {opt.status === "pending" && !simulation && (
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 16 }}>
-              <button className="btn btn-green btn-sm" style={{ justifyContent: "center" }} onClick={() => onAction(opt.id, "applied")}>
-                <CheckCircle2 size={13} /> Apply Now
+              <button className="btn btn-primary btn-sm" style={{ justifyContent: "center" }} onClick={handlePreview} disabled={simLoading}>
+                {simLoading ? "Simulating..." : <><Zap size={13} /> Preview Impact</>}
               </button>
               <button className="btn btn-ghost btn-sm" style={{ justifyContent: "center" }} onClick={() => onAction(opt.id, "scheduled")}>
                 <Calendar size={13} /> Schedule
@@ -158,6 +199,21 @@ function OptCard({ opt, onAction }: { opt: Optimization; onAction: (id: string, 
               </button>
             </div>
           )}
+          
+          {opt.status === "pending" && simulation && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 16 }}>
+              <button className="btn btn-green btn-sm" style={{ justifyContent: "center" }} onClick={async () => {
+                const diff = await applyAction(opt.id);
+                setDiffView(diff);
+              }}>
+                <CheckCircle2 size={13} /> View Action Plan
+              </button>
+              <button className="btn btn-ghost btn-sm" style={{ justifyContent: "center", fontSize: 11 }} onClick={() => { setSimulation(null); setDiffView(null); }}>
+                Close Preview
+              </button>
+            </div>
+          )}
+
           {opt.status === "applied" && (
             <div style={{ marginTop: 16, padding: "8px 12px", background: "var(--green-dim)", border: "1px solid var(--green-border)", borderRadius: 6 }}>
               <p style={{ fontSize: 12, color: "var(--green-bright)", fontWeight: 600 }}>✓ Applied</p>
@@ -171,6 +227,89 @@ function OptCard({ opt, onAction }: { opt: Optimization; onAction: (id: string, 
           )}
         </div>
       </div>
+      
+      {/* Simulation Results Expandable */}
+      {simulation && (
+        <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px dashed var(--border)" }}>
+          <h4 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>Simulation Results</h4>
+          
+          {simulation.options.map((option: any, index: number) => (
+            <div key={option.id} style={{ marginBottom: 16, padding: "16px", background: "var(--surface-1)", border: "1px solid var(--border)", borderRadius: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <h5 style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>Option {String.fromCharCode(65 + index)}: {option.title}</h5>
+                <span className={`badge ${option.risk === "Low" || option.risk === "Safe" ? "badge-green" : option.risk === "Medium" || option.risk === "Review Recommended" ? "badge-medium" : "badge-critical"}`}>{option.risk} Risk</span>
+              </div>
+              
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
+                 <div>
+                   <p style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Monthly Cost</p>
+                   <p style={{ fontSize: 14, color: "var(--text-primary)", fontWeight: 600 }}>
+                     ${simulation.currentState.monthlyCost.toFixed(0)} <ArrowRight size={12} style={{ margin: "0 4px", color: "var(--text-muted)" }}/> 
+                     <span style={{ color: "var(--green-bright)" }}>${option.projectedState.monthlyCost.toFixed(0)}</span>
+                   </p>
+                 </div>
+                 <div>
+                   <p style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Cluster CPU</p>
+                   <p style={{ fontSize: 14, color: "var(--text-primary)", fontWeight: 600 }}>
+                     {simulation.currentState.cpuPercent.toFixed(1)}% <ArrowRight size={12} style={{ margin: "0 4px", color: "var(--text-muted)" }}/> 
+                     <span style={{ color: option.projectedState.cpuPercent > 80 ? "var(--red-bright)" : "var(--blue-bright)" }}>{option.projectedState.cpuPercent.toFixed(1)}%</span>
+                   </p>
+                 </div>
+                 <div>
+                   <p style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Confidence</p>
+                   <p style={{ fontSize: 14, color: "var(--text-primary)", fontWeight: 600 }}>{option.confidence}%</p>
+                 </div>
+              </div>
+              
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                 <div style={{ flex: 1, minWidth: 200, padding: "10px 12px", background: "var(--surface-hover)", borderRadius: 6 }}>
+                    <p style={{ fontSize: 11, color: "var(--text-primary)", fontWeight: 600, marginBottom: 4 }}>Assumptions</p>
+                    <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+                      {option.assumptions.map((a: string, i: number) => <li key={i}>{a}</li>)}
+                    </ul>
+                 </div>
+                 {option.warnings && option.warnings.length > 0 && (
+                 <div style={{ flex: 1, minWidth: 200, padding: "10px 12px", background: "var(--red-dim)", border: "1px solid var(--red-border)", borderRadius: 6 }}>
+                    <p style={{ fontSize: 11, color: "var(--red-bright)", fontWeight: 600, marginBottom: 4 }}>Warnings</p>
+                    <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "var(--red-bright)", lineHeight: 1.5 }}>
+                      {option.warnings.map((w: string, i: number) => <li key={i}>{w}</li>)}
+                    </ul>
+                 </div>
+                 )}
+              </div>
+              
+            </div>
+          ))}
+        </div>
+      )}
+        
+        {diffView && (
+          <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px dashed var(--border)" }}>
+            <h4 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>Action Plan (YAML Diff)</h4>
+            <div style={{ background: "#111", border: "1px solid var(--border)", borderRadius: 8, padding: 16, fontFamily: "monospace", fontSize: 13, lineHeight: 1.5, marginBottom: 16, overflowX: "auto" }}>
+              <pre style={{ margin: 0, color: "var(--text-secondary)" }}>
+                {diffView.diff.split('\n').map((line: string, i: number) => (
+                  <div key={i} style={{ color: line.startsWith('+') ? "var(--green-bright)" : line.startsWith('-') ? "var(--red-bright)" : "inherit" }}>
+                    {line}
+                  </div>
+                ))}
+              </pre>
+            </div>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button className="btn btn-green btn-sm" disabled={isApplying} onClick={async () => {
+                setIsApplying(true);
+                try {
+                  await resolveRecommendation(opt.id, opt.title, opt.monthlySavings);
+                  onAction(opt.id, "applied");
+                } catch(e) { console.error(e) }
+                setIsApplying(false);
+              }}>
+                {isApplying ? "Applying..." : "Apply to Cluster"}
+              </button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setDiffView(null)}>Cancel</button>
+            </div>
+          </div>
+        )}
     </div>
   );
 }
@@ -178,6 +317,7 @@ function OptCard({ opt, onAction }: { opt: Optimization; onAction: (id: string, 
 export default function OptimizationCenter() {
 
   const { data: recommendations, loading } = useRecommendations();
+  const { data: resolvedData } = useResolvedRecommendations();
   const [items, setItems] = useState<Optimization[]>([]);
   const [activeFilter, setActiveFilter] = useState("All");
 
@@ -217,7 +357,7 @@ export default function OptimizationCenter() {
   });
 
   const pendingSavings = items.filter(o => o.status === "pending" && o.monthlySavings > 0).reduce((s, o) => s + o.monthlySavings, 0);
-  const appliedSavings = items.filter(o => o.status === "applied" && o.monthlySavings > 0).reduce((s, o) => s + o.monthlySavings, 0);
+  const appliedSavings = resolvedData?.totalSaved || items.filter(o => o.status === "applied" && o.monthlySavings > 0).reduce((s, o) => s + o.monthlySavings, 0);
   const pendingCount = items.filter(o => o.status === "pending").length;
 
   return (

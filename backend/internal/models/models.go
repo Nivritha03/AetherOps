@@ -1,9 +1,18 @@
 package models
 
+type OptimizationScoreBreakdown struct {
+	IdleResources  int `json:"idleResources"`
+	Rightsizing    int `json:"rightsizing"`
+	CostEfficiency int `json:"costEfficiency"`
+	Reliability    int `json:"reliability"`
+	Scheduling     int `json:"scheduling"`
+}
+
 type DashboardData struct {
 	MonthlyCost      float64 `json:"monthlyCost"`
 	PotentialSavings float64 `json:"potentialSavings"`
 	OptimizationScore int     `json:"optimizationScore"`
+	ScoreBreakdown   OptimizationScoreBreakdown `json:"scoreBreakdown"`
 	IdleGPUs         int     `json:"idleGPUs"`
 	ActiveWorkloads  int     `json:"activeWorkloads"`
 }

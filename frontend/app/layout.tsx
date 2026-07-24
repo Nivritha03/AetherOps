@@ -15,6 +15,10 @@ export const metadata: Metadata = {
   keywords: "GPU, cloud, cost optimization, AWS, GCP, Azure, AI infrastructure",
 };
 
+import AIAssistant from "@/components/AIAssistant";
+import CommandPalette from "@/components/CommandPalette";
+import LiveStatusBar from "@/components/LiveStatusBar";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -22,7 +26,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body>{children}</body>
+      <body>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+          <LiveStatusBar />
+          <div style={{ flex: 1, position: 'relative' }}>
+            {children}
+          </div>
+        </div>
+        <AIAssistant />
+        <CommandPalette />
+      </body>
     </html>
   );
 }

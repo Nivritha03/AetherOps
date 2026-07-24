@@ -1,15 +1,16 @@
 # GPU Cost Optimizer Project .gitignore
 
 # Backend (Go)
-gpu-cost-optimizer/backend/*.exe
-gpu-cost-optimizer/backend/gpu-cost-optimizer-api
-gpu-cost-optimizer/backend/.env
+backend/*.exe
+backend/gpu-cost-optimizer-api
+backend/.env
+backend/cost.db
 
 # Frontend (Next.js)
-gpu-cost-optimizer/frontend/.next/
-gpu-cost-optimizer/frontend/node_modules/
-gpu-cost-optimizer/frontend/.env.local
-gpu-cost-optimizer/frontend/.env.production
+frontend/.next/
+frontend/node_modules/
+frontend/.env.local
+frontend/.env.production
 
 # Kubernetes / Helm
 *.kubeconfig
@@ -24,3 +25,5 @@ infra/secrets/
 # OS
 .DS_Store
 Thumbs.db
+*.exe
+*.db

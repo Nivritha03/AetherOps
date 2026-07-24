@@ -4,11 +4,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gpu-cost-optimizer-api/internal/api"
-	"gpu-cost-optimizer-api/internal/providers"
-	"gpu-cost-optimizer-api/internal/providers/mock"
+	"gpu-cost-optimizer-api/internal/config"
 	"gpu-cost-optimizer-api/internal/services"
 )
 
@@ -18,31 +18,45 @@ func main() {
 		port = "8080"
 	}
 
-	// Initialize providers (using mock provider for now)
-	mockProvider := mock.NewMockProvider()
-	p := &providers.Providers{
-		Dashboard:      mockProvider,
-		Node:           mockProvider,
-		Workload:       mockProvider,
-		Recommendation: mockProvider,
-		Cost:           mockProvider,
-		Alert:          mockProvider,
-		Cluster:        mockProvider,
+	// Load configuration
+	cfg, err := config.LoadConfig("config.yaml")
+	if err != nil {
+		log.Printf("Warning: Failed to load config.yaml, falling back to mock provider: %v", err)
+		cfg = &config.Config{} // Create empty config to prevent nil pointer errors
+		cfg.Provider.Type = "mock"
 	}
 
-	// Initialize service layer
-	service := services.NewService(p)
+	// Initialize service layer (which now initializes providers based on config)
+	service := services.NewService(cfg)
 
 	// Initialize API handler
 	handler := api.NewHandler(service)
 
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.Recovery())
 
-	// CORS middleware
+	// Custom Request Logging Middleware
 	r.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
+		start := time.Now()
+		c.Next()
+		duration := time.Since(start)
+		log.Printf("[API] Method: %s | Path: %s | Status: %d | Response Time: %s",
+			c.Request.Method,
+			c.Request.URL.Path,
+			c.Writer.Status(),
+			duration,
+		)
+	})
+
+	// CORS middleware - strictly allow localhost during development
+	r.Use(func(c *gin.Context) {
+		origin := c.Request.Header.Get("Origin")
+		if origin == "http://localhost:3000" {
+			c.Header("Access-Control-Allow-Origin", origin)
+		}
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(http.StatusNoContent)
 			return

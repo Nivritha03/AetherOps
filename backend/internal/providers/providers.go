@@ -23,6 +23,7 @@ type RecommendationProvider interface {
 type CostProvider interface {
 	GetCostHistory() ([]models.CostHistory, error)
 	GetCostBreakdown() (models.CostBreakdownResponse, error)
+	GetCostTimeline() (interface{}, error)
 }
 
 type AlertProvider interface {
