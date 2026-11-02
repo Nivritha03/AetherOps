@@ -84,7 +84,6 @@ export default function LandingPage() {
             }}
           >
             <span>Log in</span>
-            <span style={{ fontSize: 10, padding: "1px 5px", borderRadius: 4, background: "rgba(245,240,230,0.1)", color: "var(--cream-primary)" }}>L</span>
           </Link>
           <Link
             href="/auth/signup"
