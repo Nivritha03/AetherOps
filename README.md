@@ -39,19 +39,6 @@ Modern engineering teams face critical operational inefficiencies:
 
 ---
 
-## 🎨 Design System & Palette
-
-AetherOps features a **Linear-inspired command center aesthetic**, meticulously styled using CSS variable design tokens for sub-second page performance:
-
-| Token | Name | Hex | Usage |
-|:---:|:---:|:---:|:---|
-| <img src="https://via.placeholder.com/18/8EA396/8EA396.png" /> | **Muted Sage Grey** | `#8EA396` | Secondary typography, subtle borders, telemetry waveforms |
-| <img src="https://via.placeholder.com/18/F5F0E6/F5F0E6.png" /> | **Warm Cream Beige** | `#F5F0E6` | Primary headers, high-contrast labels, active badges |
-| <img src="https://via.placeholder.com/18/8B1D41/8B1D41.png" /> | **Deep Burgundy** | `#8B1D41` | Hero accents, primary action buttons, key metrics, status rings |
-| <img src="https://via.placeholder.com/18/120D12/120D12.png" /> | **Obsidian Base** | `#120D12` | Deep-space dark canvas, glassmorphic cards (`rgba(34,26,34,0.7)`) |
-
----
-
 ## ⚡ Key Features
 
 ### 🔐 1. Enterprise Authentication & Security
