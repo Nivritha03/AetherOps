@@ -9,10 +9,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "GPU Cost Optimizer | Autonomous Multicloud AI Infrastructure",
+  title: "AetherOps",
   description:
-    "Intelligent platform for monitoring, analyzing, and optimizing GPU costs across AWS, GCP, and Azure cloud providers.",
-  keywords: "GPU, cloud, cost optimization, AWS, GCP, Azure, AI infrastructure",
+    "Autonomous Multi-Cloud AI Infrastructure & Kubernetes Management Platform.",
+  keywords: "AetherOps, Kubernetes, multi-cloud, AI infrastructure, FinOps, EKS, GPU cost optimization",
 };
 
 import AIAssistant from "@/components/AIAssistant";
