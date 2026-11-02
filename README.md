@@ -14,7 +14,7 @@
 
 **AetherOps** is a mission-critical, autonomous cloud operations and FinOps intelligence platform engineered for multi-cloud AI infrastructure. It unifies distributed Kubernetes clusters (AWS EKS, GCP, Azure, Kind), streams live hardware and container telemetry, detects idle compute waste, executes autonomous self-healing rollouts, and provides a safe What-If financial sandbox.
 
-[Explore Platform](#-key-features) • [Architecture](#-system-architecture) • [Live Telemetry](#-zero-mock-live-telemetry) • [Quick Start](#-quick-start) • [API Reference](#-api-specification)
+[Explore Platform](#-key-features) • [Architecture](#-system-architecture) • [Quick Start](#-quick-start) • [API Reference](#-api-specification)
 
 <br/>
 
