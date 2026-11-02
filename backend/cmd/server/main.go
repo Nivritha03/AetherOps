@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gpu-cost-optimizer-api/internal/api"
+	"gpu-cost-optimizer-api/internal/auth"
 	"gpu-cost-optimizer-api/internal/config"
 	"gpu-cost-optimizer-api/internal/services"
 )
@@ -26,11 +27,17 @@ func main() {
 		cfg.Provider.Type = "mock"
 	}
 
+	// Initialize AuthStore with persistent SQLite
+	authStore, err := auth.NewAuthStore("cost.db")
+	if err != nil {
+		log.Fatalf("Failed to initialize authentication store: %v", err)
+	}
+
 	// Initialize service layer (which now initializes providers based on config)
 	service := services.NewService(cfg)
 
-	// Initialize API handler
-	handler := api.NewHandler(service)
+	// Initialize API handler with AuthStore
+	handler := api.NewHandler(service, authStore)
 
 	r := gin.New()
 	r.Use(gin.Recovery())

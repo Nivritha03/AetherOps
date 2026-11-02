@@ -28,7 +28,11 @@ func NewEngine(cfg *config.Config) (*Engine, error) {
 
 	activeRules := []rules.Rule{
 		&rules.IdleCPURule{ObservationWindow: cfg.Rules.IdleCPU.ObservationWindow},
+		&rules.IdleGPURule{ObservationWindow: "24h"},
+		&rules.UnderutilizedGPURule{ObservationWindow: "24h"},
 		&rules.NodeConsolidationRule{ObservationWindow: cfg.Rules.NodeConsolidation.ObservationWindow},
+		&rules.SpotOpportunityRule{ObservationWindow: "7d"},
+		&rules.InstanceResizingRule{ObservationWindow: "48h"},
 	}
 
 	return &Engine{

@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 import AIAssistant from "@/components/AIAssistant";
 import CommandPalette from "@/components/CommandPalette";
 import LiveStatusBar from "@/components/LiveStatusBar";
+import { AuthProvider } from "@/lib/auth-context";
 
 export default function RootLayout({
   children,
@@ -27,14 +28,16 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body>
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-          <LiveStatusBar />
-          <div style={{ flex: 1, position: 'relative' }}>
-            {children}
+        <AuthProvider>
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+            <LiveStatusBar />
+            <div style={{ flex: 1, position: 'relative' }}>
+              {children}
+            </div>
           </div>
-        </div>
-        <AIAssistant />
-        <CommandPalette />
+          <AIAssistant />
+          <CommandPalette />
+        </AuthProvider>
       </body>
     </html>
   );

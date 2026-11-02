@@ -66,3 +66,14 @@ func (h *Handler) chatAssistant(c *gin.Context) {
 	}
 	successResponse(c, map[string]string{"reply": reply})
 }
+
+func (h *Handler) exportCSVReport(c *gin.Context) {
+	reportType := c.DefaultQuery("type", "cost")
+	csvData, err := h.service.GenerateCSVReport(reportType)
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+	c.Header("Content-Disposition", "attachment; filename=aetherops_"+reportType+"_report.csv")
+	c.Data(200, "text/csv", []byte(csvData))
+}

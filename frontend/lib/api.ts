@@ -19,7 +19,14 @@ export function useFetch<T>(endpoint: string) {
   const fetchData = () => {
     setLoading(true);
     setError(null);
-    fetch(`${API_BASE}${endpoint}`)
+    const separator = endpoint.includes("?") ? "&" : "?";
+    fetch(`${API_BASE}${endpoint}${separator}_t=${Date.now()}`, {
+      cache: "no-store",
+      headers: {
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+      }
+    })
       .then(res => {
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         return res.json();
@@ -50,6 +57,14 @@ export const useCostHistory = () => useFetch<CostHistory[]>("/costs");
 export const useCostBreakdown = () => useFetch<any>("/cost/breakdown");
 export const useAlerts = () => useFetch<Alert[]>("/alerts");
 export const useClusters = () => useFetch<ClusterSummary[]>("/cluster");
+
+// Platform-level dynamic hooks connecting directly to backend API
+export const usePlatformClusters = () => useFetch<any>("/clusters/list");
+export const useApplications = () => useFetch<any>("/applications/list");
+export const usePipelines = () => useFetch<any>("/pipelines/list");
+export const useLogsStream = () => useFetch<any>("/logs/stream");
+export const useAutoscalingPolicies = () => useFetch<any>("/autoscaling/policies");
+export const useInfrastructurePlan = () => useFetch<any>("/infrastructure/plan");
 
 export async function runSimulation(id: string) {
   const res = await fetch(`${API_BASE}/simulations`, {

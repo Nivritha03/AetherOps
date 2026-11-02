@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gpu-cost-optimizer-api/internal/auth"
 	"gpu-cost-optimizer-api/internal/services"
 )
 
@@ -30,16 +31,28 @@ func errorResponse(c *gin.Context, err error) {
 }
 
 type Handler struct {
-	service *services.Service
+	service   *services.Service
+	authStore *auth.AuthStore
 }
 
-func NewHandler(s *services.Service) *Handler {
-	return &Handler{service: s}
+func NewHandler(s *services.Service, a *auth.AuthStore) *Handler {
+	return &Handler{service: s, authStore: a}
 }
 
 func (h *Handler) RegisterRoutes(r *gin.Engine) {
 	v1 := r.Group("/api/v1")
 	{
+		// Authentication & Security APIs
+		authGroup := v1.Group("/auth")
+		{
+			authGroup.POST("/register", h.authStore.RateLimitMiddleware(), h.registerUser)
+			authGroup.POST("/login", h.authStore.RateLimitMiddleware(), h.loginUser)
+			authGroup.POST("/logout", h.logoutUser)
+			authGroup.POST("/forgot-password", h.authStore.RateLimitMiddleware(), h.requestPasswordReset)
+			authGroup.POST("/reset-password", h.resetPassword)
+			authGroup.GET("/me", h.authStore.AuthMiddleware(), h.getCurrentUser)
+		}
+
 		v1.GET("/health", h.getHealth)
 		v1.GET("/dashboard", h.getDashboard)
 		v1.GET("/gpus", h.getGPUs)
@@ -65,6 +78,20 @@ func (h *Handler) RegisterRoutes(r *gin.Engine) {
 
 		// Milestone 9: AI Assistant
 		v1.POST("/assistant/chat", h.chatAssistant)
+
+		// Module 10: Reports Export
+		v1.GET("/reports/export/csv", h.exportCSVReport)
+
+		// Autonomous Cloud Infrastructure & Kubernetes Platform Modules
+		v1.GET("/clusters/list", h.listClusters)
+		v1.POST("/clusters/connect", h.connectCluster)
+		v1.GET("/applications/list", h.listApplications)
+		v1.POST("/applications/deploy", h.deployApplication)
+		v1.POST("/applications/:id/scale", h.scaleApplication)
+		v1.GET("/pipelines/list", h.listPipelines)
+		v1.GET("/infrastructure/plan", h.getTerraformPlan)
+		v1.GET("/logs/stream", h.getLogs)
+		v1.GET("/autoscaling/policies", h.getAutoscalingPolicies)
 	}
 }
 
