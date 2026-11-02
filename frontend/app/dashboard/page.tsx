@@ -22,18 +22,26 @@ export default function DashboardPage() {
   const { data: appsData, refetch: refetchApps } = useApplications();
   const [activeRange, setActiveRange] = useState("30d");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefreshedTime, setLastRefreshedTime] = useState<string>("Just now");
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await Promise.all([
-      refetchDash(),
-      refetchOpts(),
-      refetchNodes(),
-      refetchCosts(),
-      refetchClusters(),
-      refetchApps(),
-    ]);
-    setTimeout(() => setIsRefreshing(false), 500);
+    try {
+      await Promise.all([
+        refetchDash(),
+        refetchOpts(),
+        refetchNodes(),
+        refetchCosts(),
+        refetchClusters(),
+        refetchApps(),
+      ]);
+      const now = new Date();
+      setLastRefreshedTime(now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+    } catch (err) {
+      console.error("Refresh error:", err);
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 400);
+    }
   };
 
   // Derive live dynamic aggregates from API endpoints
@@ -135,8 +143,12 @@ export default function DashboardPage() {
                   <CheckCircle2 size={13} color="var(--green-bright)" />
                 </div>
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--cream-primary)" }}>API Sync: Live Connected</div>
-                  <div style={{ fontSize: 10, color: "var(--text-muted)" }}>Backend port :8080 streaming</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--cream-primary)" }}>
+                    API Sync: {isRefreshing ? "Syncing..." : "Live Connected"}
+                  </div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
+                    Updated {lastRefreshedTime} (:8080)
+                  </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: 16, marginLeft: 6 }}>
                   <span style={{ width: 3, height: 8, background: "var(--burgundy-primary)", borderRadius: 1 }} />

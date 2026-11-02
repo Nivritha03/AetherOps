@@ -48,8 +48,8 @@ export default function LogsPage() {
             </div>
 
             <div style={{ display: "flex", gap: 10 }}>
-              <button className="btn btn-ghost btn-sm" onClick={() => refetch()}>
-                <RefreshCw size={12} /> {loading ? "Streaming..." : "Refresh"}
+              <button className="btn btn-ghost btn-sm" onClick={() => refetch()} disabled={loading}>
+                <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> {loading ? "Streaming..." : "Refresh"}
               </button>
               <button
                 className={`btn btn-sm ${isLive ? "btn-primary" : "btn-ghost"}`}

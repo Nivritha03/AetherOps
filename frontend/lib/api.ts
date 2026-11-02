@@ -16,30 +16,29 @@ export function useFetch<T>(endpoint: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = () => {
+  const fetchData = async (): Promise<T | null> => {
     setLoading(true);
     setError(null);
     const separator = endpoint.includes("?") ? "&" : "?";
-    fetch(`${API_BASE}${endpoint}${separator}_t=${Date.now()}`, {
-      cache: "no-store",
-      headers: {
-        "Cache-Control": "no-cache",
-        "Pragma": "no-cache",
-      }
-    })
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        return res.json();
-      })
-      .then(d => {
-        setData(d);
-        setLoading(false);
-      })
-      .catch(e => {
-        console.error(e);
-        setError(e.message || "An error occurred");
-        setLoading(false);
+    try {
+      const res = await fetch(`${API_BASE}${endpoint}${separator}_t=${Date.now()}`, {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache",
+          "Pragma": "no-cache",
+        }
       });
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      const d = await res.json();
+      setData(d);
+      setLoading(false);
+      return d;
+    } catch (e: any) {
+      console.error(e);
+      setError(e.message || "An error occurred");
+      setLoading(false);
+      return null;
+    }
   };
 
   useEffect(() => {

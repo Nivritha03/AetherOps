@@ -34,10 +34,19 @@ export default function MonitoringPage() {
     gpu: gpu.utilizationPercent,
   }));
 
-  const handleRefresh = () => {
-    refetchGpus();
-    refetchClusters();
-    refetchPlatform();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        refetchGpus(),
+        refetchClusters(),
+        refetchPlatform(),
+      ]);
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 400);
+    }
   };
 
   return (
@@ -59,8 +68,9 @@ export default function MonitoringPage() {
             </div>
 
             <div style={{ display: "flex", gap: 10 }}>
-              <button className="btn btn-ghost btn-sm" onClick={handleRefresh}>
-                <RefreshCw size={13} /> Refresh
+              <button className="btn btn-ghost btn-sm" onClick={handleRefresh} disabled={isRefreshing}>
+                <RefreshCw size={13} className={isRefreshing ? "animate-spin" : ""} />
+                {isRefreshing ? "Syncing..." : "Refresh"}
               </button>
               <button className="btn btn-ghost btn-sm" onClick={() => window.open("/cluster-health", "_self")}>
                 <Activity size={13} /> Deep Diagnostics

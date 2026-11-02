@@ -41,8 +41,8 @@ export default function AutoscalingPage() {
             </div>
 
             <div style={{ display: "flex", gap: 10 }}>
-              <button className="btn btn-ghost btn-sm" onClick={() => refetch()}>
-                <RefreshCw size={13} /> {loading ? "Syncing..." : "Refresh"}
+              <button className="btn btn-ghost btn-sm" onClick={() => refetch()} disabled={loading}>
+                <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> {loading ? "Syncing..." : "Refresh"}
               </button>
               <button className="btn btn-primary btn-sm" onClick={() => alert("HPA Rule Creator: Configure threshold & deployment selector.")}>
                 <Scale size={13} /> Add Scaling Rule
